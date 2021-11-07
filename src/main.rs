@@ -10,7 +10,7 @@ fn main() {
     'program: loop {
         let hidden_word = get_hidden_word(&words);
         let mut total_guesses = 10;
-        let mut guesses: HashSet<String> = HashSet::new();
+        let mut guesses = HashSet::new();
         let mut display_word = get_display_word(hidden_word, &guesses);
 
         'game: while total_guesses > 0 {
