@@ -95,7 +95,7 @@ fn get_user_guess(
     guess = guess.trim().to_lowercase();
 
     if !valid_chars.contains(guess.as_str()) || guess == "" {
-        return Err(format!("\"{}\" is not a valid character!", guess));
+        return Err(format!("\"{}\" is not a valid guess!", guess));
     }
 
     if user_guesses.contains(&guess) {
