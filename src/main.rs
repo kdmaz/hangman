@@ -5,13 +5,16 @@ fn main() {
     let valid_chars = get_valid_chars();
     let words = get_random_words();
 
-    loop {
-        let word = get_random_word(&words);
+    'program: loop {
+        let hidden_word = get_hidden_word(&words);
         let mut total_guesses = 10;
         let mut guesses: HashSet<String> = HashSet::new();
+        let mut display_word = get_display_word(&hidden_word, &guesses);
 
-        while total_guesses > 0 {
-            let guess = match get_letter_guess(&valid_chars) {
+        'game: while total_guesses > 0 {
+            println!("{}", display_word);
+
+            let guess = match get_user_guess(&valid_chars) {
                 Ok(g) => g,
                 Err(e) => {
                     println!("{}", e);
@@ -24,16 +27,28 @@ fn main() {
                 continue;
             }
 
-            println!("Random word is \"{}\"", word);
-            println!("Your guess is \"{}\"", guess);
+            guesses.insert(guess.clone());
 
-            guesses.insert(guess);
-            total_guesses -= 1;
+            if !hidden_word.contains(&guess) {
+                total_guesses -= 1;
+            }
+
+            display_word = get_display_word(&hidden_word, &guesses);
+            if !display_word.contains("_") {
+                println!("You won! The word is {}", hidden_word);
+                break 'game;
+            }
 
             println!("Guesses remaining ({})", total_guesses);
+
+            if total_guesses == 0 {
+                println!("The word is {}", hidden_word);
+            }
         }
 
-        // play again?
+        if !play_again() {
+            break 'program;
+        }
     }
 }
 
@@ -55,12 +70,38 @@ fn get_random_words() -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
-fn get_random_word(words: &Vec<String>) -> &String {
+fn get_hidden_word(words: &Vec<String>) -> &String {
     let index = rand::thread_rng().gen_range(0..words.len());
     &words[index]
 }
 
-fn get_letter_guess(valid_chars: &HashSet<String>) -> Result<String, String> {
+fn get_display_word(hidden_word: &String, guesses: &HashSet<String>) -> String {
+    hidden_word
+        .split("")
+        .enumerate()
+        .map(|(i, letter)| {
+            let is_last_letter = hidden_word.len() == i;
+
+            let get_letter_to_display = |letter| {
+                if guesses.contains(letter) {
+                    letter
+                } else {
+                    "_"
+                }
+            };
+
+            if letter == "" {
+                String::new()
+            } else if is_last_letter {
+                get_letter_to_display(letter).to_string()
+            } else {
+                format!("{} ", get_letter_to_display(letter))
+            }
+        })
+        .collect()
+}
+
+fn get_user_guess(valid_chars: &HashSet<String>) -> Result<String, String> {
     println!("Guess a letter!");
 
     let mut guess = String::new();
@@ -72,4 +113,13 @@ fn get_letter_guess(valid_chars: &HashSet<String>) -> Result<String, String> {
     }
 
     Ok(guess)
+}
+
+fn play_again() -> bool {
+    println!("Play again? (y/n)");
+
+    let mut yes_or_no = String::new();
+    io::stdin().read_line(&mut yes_or_no).unwrap();
+    yes_or_no = yes_or_no.trim().to_lowercase();
+    [String::from("y"), String::from("yes")].contains(&yes_or_no)
 }
