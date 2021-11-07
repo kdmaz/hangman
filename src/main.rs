@@ -66,7 +66,7 @@ fn get_display_word(hidden_word: &str, user_guesses: &HashSet<String>) -> String
         .filter(|&letter| !letter.is_empty())
         .enumerate()
         .map(|(i, letter)| {
-            let is_last_letter = hidden_word.len() == i;
+            let is_last_letter = hidden_word.len() - 1 == i;
             let width = if is_last_letter { 1 } else { 2 };
             let letter = if user_guesses.contains(letter) {
                 letter
