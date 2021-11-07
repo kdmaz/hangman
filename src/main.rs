@@ -9,21 +9,15 @@ fn main() {
 
     'program: loop {
         let hidden_word = get_hidden_word(&words);
-        let mut total_guesses = 10;
-        let mut guesses = HashSet::new();
-        let mut display_word = get_display_word(hidden_word, &guesses);
+        let mut user_guesses = HashSet::new();
+        let mut display_word = get_display_word(hidden_word, &user_guesses);
+        let mut guesses_remaining = 10;
 
-        'game: while total_guesses > 0 {
+        'game: while guesses_remaining > 0 {
             println!("{}", display_word);
 
-            let guess = match get_user_guess(&valid_chars) {
-                Ok(guess) => {
-                    if guesses.contains(&guess) {
-                        println!("You already guessed \"{}\"!", guess);
-                        continue;
-                    }
-                    guess
-                }
+            let guess = match get_user_guess(&valid_chars, &user_guesses) {
+                Ok(guess) => guess,
                 Err(e) => {
                     println!("{}", e);
                     continue;
@@ -31,19 +25,19 @@ fn main() {
             };
 
             if !hidden_word.contains(&guess) {
-                total_guesses -= 1;
+                guesses_remaining -= 1;
             }
-            guesses.insert(guess);
+            user_guesses.insert(guess);
 
-            display_word = get_display_word(&hidden_word, &guesses);
+            display_word = get_display_word(&hidden_word, &user_guesses);
             if !display_word.contains("_") {
                 println!("You won! The word is {}", hidden_word);
                 break 'game;
             }
 
-            println!("Guesses remaining ({})", total_guesses);
+            println!("Guesses remaining ({})", guesses_remaining);
 
-            if total_guesses == 0 {
+            if guesses_remaining == 0 {
                 println!("The word is {}", hidden_word);
             }
         }
@@ -67,7 +61,7 @@ fn get_hidden_word<'a>(words: &'a [&str; 1000]) -> &'a str {
     &words[index]
 }
 
-fn get_display_word(hidden_word: &str, guesses: &HashSet<String>) -> String {
+fn get_display_word(hidden_word: &str, user_guesses: &HashSet<String>) -> String {
     hidden_word
         .split("")
         .filter(|&letter| !letter.is_empty())
@@ -76,7 +70,7 @@ fn get_display_word(hidden_word: &str, guesses: &HashSet<String>) -> String {
             let is_last_letter = hidden_word.len() == i;
             let mut display_letter = String::new();
 
-            if guesses.contains(letter) {
+            if user_guesses.contains(letter) {
                 display_letter.push_str(letter);
             } else {
                 display_letter.push_str("_");
@@ -90,7 +84,10 @@ fn get_display_word(hidden_word: &str, guesses: &HashSet<String>) -> String {
         .collect()
 }
 
-fn get_user_guess(valid_chars: &HashSet<String>) -> Result<String, String> {
+fn get_user_guess(
+    valid_chars: &HashSet<String>,
+    user_guesses: &HashSet<String>,
+) -> Result<String, String> {
     println!("Guess a letter!");
 
     let mut guess = String::new();
@@ -99,6 +96,10 @@ fn get_user_guess(valid_chars: &HashSet<String>) -> Result<String, String> {
 
     if !valid_chars.contains(guess.as_str()) || guess == "" {
         return Err(format!("\"{}\" is not a valid character!", guess));
+    }
+
+    if user_guesses.contains(&guess) {
+        return Err(format!("You already guessed \"{}\"!", guess));
     }
 
     Ok(guess)
