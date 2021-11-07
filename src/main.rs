@@ -67,18 +67,13 @@ fn get_display_word(hidden_word: &str, user_guesses: &HashSet<String>) -> String
         .enumerate()
         .map(|(i, letter)| {
             let is_last_letter = hidden_word.len() == i;
-            let mut display_letter = String::new();
-
-            if user_guesses.contains(letter) {
-                display_letter.push_str(letter);
+            let width = if is_last_letter { 1 } else { 2 };
+            let letter = if user_guesses.contains(letter) {
+                letter
             } else {
-                display_letter.push_str("_");
-            }
-
-            if !is_last_letter {
-                display_letter.push_str(" ");
-            }
-            display_letter
+                "_"
+            };
+            format!("{0:1$}", letter, width)
         })
         .collect()
 }
