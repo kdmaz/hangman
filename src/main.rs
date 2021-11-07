@@ -70,25 +70,22 @@ fn get_hidden_word<'a>(words: &'a [&str; 1000]) -> &'a str {
 fn get_display_word(hidden_word: &str, guesses: &HashSet<String>) -> String {
     hidden_word
         .split("")
+        .filter(|&letter| !letter.is_empty())
         .enumerate()
         .map(|(i, letter)| {
             let is_last_letter = hidden_word.len() == i;
+            let mut display_letter = String::new();
 
-            let get_letter_to_display = |letter| {
-                if guesses.contains(letter) {
-                    letter
-                } else {
-                    "_"
-                }
-            };
-
-            if letter == "" {
-                String::new()
-            } else if is_last_letter {
-                get_letter_to_display(letter).to_string()
+            if guesses.contains(letter) {
+                display_letter.push_str(letter);
             } else {
-                format!("{} ", get_letter_to_display(letter))
+                display_letter.push_str("_");
             }
+
+            if !is_last_letter {
+                display_letter.push_str(" ");
+            }
+            display_letter
         })
         .collect()
 }
@@ -100,7 +97,7 @@ fn get_user_guess(valid_chars: &HashSet<String>) -> Result<String, String> {
     io::stdin().read_line(&mut guess).unwrap();
     guess = guess.trim().to_lowercase();
 
-    if !valid_chars.contains(guess.as_str()) {
+    if !valid_chars.contains(guess.as_str()) || guess == "" {
         return Err(format!("\"{}\" is not a valid character!", guess));
     }
 
