@@ -1,15 +1,17 @@
 use rand::Rng;
-use std::{collections::HashSet, fs, io};
+use std::{collections::HashSet, io};
+
+use hangman::word_list;
 
 fn main() {
     let valid_chars = get_valid_chars();
-    let words = get_random_words();
+    let words = word_list::get_word_list();
 
     'program: loop {
         let hidden_word = get_hidden_word(&words);
         let mut total_guesses = 10;
         let mut guesses: HashSet<String> = HashSet::new();
-        let mut display_word = get_display_word(&hidden_word, &guesses);
+        let mut display_word = get_display_word(hidden_word, &guesses);
 
         'game: while total_guesses > 0 {
             println!("{}", display_word);
@@ -61,22 +63,12 @@ fn get_valid_chars() -> HashSet<String> {
     valid_chars
 }
 
-fn get_random_words() -> Vec<String> {
-    let filename = "random_words.txt";
-    let random_words = fs::read_to_string(filename)
-        .expect(format!("Could not read file \"{}\"!", filename).as_str());
-    random_words
-        .split("\r\n")
-        .map(str::to_string)
-        .collect::<Vec<_>>()
-}
-
-fn get_hidden_word(words: &Vec<String>) -> &String {
+fn get_hidden_word<'a>(words: &'a [&str; 1000]) -> &'a str {
     let index = rand::thread_rng().gen_range(0..words.len());
     &words[index]
 }
 
-fn get_display_word(hidden_word: &String, guesses: &HashSet<String>) -> String {
+fn get_display_word(hidden_word: &str, guesses: &HashSet<String>) -> String {
     hidden_word
         .split("")
         .enumerate()
