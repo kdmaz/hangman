@@ -1,7 +1,6 @@
+use hangman::word_list;
 use rand::Rng;
 use std::{collections::HashSet, io};
-
-use hangman::word_list;
 
 fn main() {
     let valid_chars = get_valid_chars();
