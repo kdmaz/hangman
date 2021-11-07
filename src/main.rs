@@ -15,17 +15,18 @@ fn main() {
             println!("{}", display_word);
 
             let guess = match get_user_guess(&valid_chars) {
-                Ok(g) => g,
+                Ok(guess) => {
+                    if guesses.contains(&guess) {
+                        println!("You already guessed \"{}\"!", guess);
+                        continue;
+                    }
+                    guess
+                }
                 Err(e) => {
                     println!("{}", e);
                     continue;
                 }
             };
-
-            if guesses.contains(&guess) {
-                println!("You already guessed \"{}\"!", guess);
-                continue;
-            }
 
             guesses.insert(guess.clone());
 
