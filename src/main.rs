@@ -30,11 +30,10 @@ fn main() {
                 }
             };
 
-            guesses.insert(guess.clone());
-
             if !hidden_word.contains(&guess) {
                 total_guesses -= 1;
             }
+            guesses.insert(guess);
 
             display_word = get_display_word(&hidden_word, &guesses);
             if !display_word.contains("_") {
