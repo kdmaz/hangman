@@ -1,5 +1,5 @@
 use hangman::word_list;
-use rand::Rng;
+use rand::prelude::SliceRandom;
 use std::{collections::HashSet, io};
 
 fn main() {
@@ -56,8 +56,7 @@ fn get_valid_chars() -> HashSet<String> {
 }
 
 fn get_hidden_word<'a>(words: &'a [&str; 1000]) -> &'a str {
-    let index = rand::thread_rng().gen_range(0..words.len());
-    &words[index]
+    &words.choose(&mut rand::thread_rng()).unwrap()
 }
 
 fn get_display_word(hidden_word: &str, user_guesses: &HashSet<String>) -> String {
