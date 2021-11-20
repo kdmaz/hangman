@@ -1,4 +1,4 @@
-use hangman::word_list;
+mod word_list;
 use rand::prelude::SliceRandom;
 use std::{collections::HashSet, io};
 
