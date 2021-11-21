@@ -7,37 +7,37 @@ fn main() {
     let word_list = word_list::get_word_list();
 
     'program: loop {
-        let hidden_word = get_hidden_word(&word_list);
-        let mut user_guessed_chars = HashSet::new();
-        let mut display_word = get_display_word(&hidden_word, &user_guessed_chars);
+        let random_word = *word_list.choose(&mut rand::thread_rng()).unwrap();
+        let mut guessed_chars = HashSet::new();
         let mut guesses_remaining = 10;
+        let mut display_word = get_display_word(&random_word, &guessed_chars);
 
         'game: while guesses_remaining > 0 {
             println!("{}", display_word);
 
-            let user_guess = match get_user_guess(&valid_chars, &user_guessed_chars) {
-                Ok(guess) => guess,
+            let char_guess = match get_char_guess(&valid_chars, &guessed_chars) {
+                Ok(c) => c,
                 Err(e) => {
                     println!("{}", e);
                     continue;
                 }
             };
 
-            if !hidden_word.contains(&user_guess.to_string()) {
+            if !random_word.contains(&char_guess.to_string()) {
                 guesses_remaining -= 1;
             }
-            user_guessed_chars.insert(user_guess);
+            guessed_chars.insert(char_guess);
 
-            display_word = get_display_word(&hidden_word, &user_guessed_chars);
+            display_word = get_display_word(&random_word, &guessed_chars);
             if !display_word.contains("_") {
-                println!("You won! The word is {}", hidden_word);
+                println!("You won! The word is {}", random_word);
                 break 'game;
             }
 
             println!("Guesses remaining ({})", guesses_remaining);
 
             if guesses_remaining == 0 {
-                println!("The word is {}", hidden_word);
+                println!("The word is {}", random_word);
             }
         }
 
@@ -55,18 +55,14 @@ fn get_valid_chars() -> HashSet<char> {
     valid_chars
 }
 
-fn get_hidden_word<'a>(words: &'a [&str; 1000]) -> &'a str {
-    &words.choose(&mut rand::thread_rng()).unwrap()
-}
-
-fn get_display_word(hidden_word: &str, user_guessed_chars: &HashSet<char>) -> String {
-    hidden_word
+fn get_display_word(random_word: &str, guessed_chars: &HashSet<char>) -> String {
+    random_word
         .chars()
         .enumerate()
         .map(|(i, letter)| {
-            let is_last_letter = hidden_word.len() - 1 == i;
+            let is_last_letter = random_word.len() - 1 == i;
             let width = if is_last_letter { 1 } else { 2 };
-            let letter = if user_guessed_chars.contains(&letter) {
+            let letter = if guessed_chars.contains(&letter) {
                 letter
             } else {
                 '_'
@@ -76,9 +72,9 @@ fn get_display_word(hidden_word: &str, user_guessed_chars: &HashSet<char>) -> St
         .collect()
 }
 
-fn get_user_guess(
+fn get_char_guess(
     valid_chars: &HashSet<char>,
-    user_guesses: &HashSet<char>,
+    guessed_chars: &HashSet<char>,
 ) -> Result<char, String> {
     println!("Guess a letter!");
 
@@ -90,23 +86,23 @@ fn get_user_guess(
         return Err(String::from("You can only guess one character!"));
     }
 
-    let guess = match guess.chars().next() {
+    let char_guess = match guess.chars().next() {
         Some(c) if valid_chars.contains(&c) => c,
         None => return Err(String::from("You can't guess an empty character!")),
         _ => return Err(format!("\"{}\" is not a valid guess!", guess)),
     };
 
-    if user_guesses.contains(&guess) {
-        return Err(format!("You already guessed \"{}\"!", guess));
+    if guessed_chars.contains(&char_guess) {
+        return Err(format!("You already guessed \"{}\"!", char_guess));
     }
 
-    Ok(guess)
+    Ok(char_guess)
 }
 
 fn play_again() -> bool {
     println!("Play again? (y/n)");
 
-    let mut play_again = String::new();
-    io::stdin().read_line(&mut play_again).unwrap();
-    play_again.trim().to_lowercase().contains("y")
+    let mut response = String::new();
+    io::stdin().read_line(&mut response).unwrap();
+    response.trim().to_lowercase().contains("y")
 }
